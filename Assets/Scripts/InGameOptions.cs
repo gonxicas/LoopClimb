@@ -3,84 +3,95 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class InGameOptions : MonoBehaviour
+namespace LoopClimb.Others
 {
-    public static InGameOptions Instance;
-    
-    [SerializeField] public Slider music;
-    [SerializeField] private Slider master;
-    [SerializeField] private Slider soundEffects;
-    [SerializeField] private GameObject pausePanel;
-
-    private bool _soundEffectPlaying = false;
-    public GameObject PausePanel => pausePanel;
-
-    private void Awake()
+    public class InGameOptions : MonoBehaviour
     {
-        music.onValueChanged.AddListener(SetMusicLevel);
-        master.onValueChanged.AddListener(SetMasterLevel);
-        soundEffects.onValueChanged.AddListener(SetSoundEffectsLevel);
-        Instance = this;
-    }
+        public static InGameOptions Instance;
 
-    private void Start()
-    {
-        music.value = SoundManagaer.instance.MusicVolume;
-        master.value = SoundManagaer.instance.MasterVolume;
-        soundEffects.value = SoundManagaer.instance.SoundEffectsVolume;
-    }
+        [SerializeField] public Slider music;
+        [SerializeField] private Slider master;
+        [SerializeField] private Slider soundEffects;
+        [SerializeField] private GameObject pausePanel;
 
-    private void Update()
-    {
-        CheckPausePanel();
-    }
-
-    private void CheckPausePanel()
-    {
-        if (!Input.GetKeyDown(KeyCode.Escape)) return;
-
-        if (pausePanel.activeInHierarchy)
+        private bool _soundEffectPlaying = false;
+        public GameObject PausePanel => pausePanel;
+        
+        private void Awake()
         {
-            pausePanel.SetActive(false);
-            Time.timeScale = 1;
+            if (Instance == null)
+                Instance = this;
+            else if (Instance != this)
+                Destroy(gameObject);
+            music.onValueChanged.AddListener(SetMusicLevel);
+            master.onValueChanged.AddListener(SetMasterLevel);
+            soundEffects.onValueChanged.AddListener(SetSoundEffectsLevel);
         }
-        else
+
+        private void Start()
         {
-            pausePanel.SetActive(true);
-            Time.timeScale = 0;
+            music.value = SoundManagaer.Instance.MusicVolume;
+            master.value = SoundManagaer.Instance.MasterVolume;
+            soundEffects.value = SoundManagaer.Instance.SoundEffectsVolume;
         }
-    }
 
-    private void SetMusicLevel(float value)
-    {
-        SoundManagaer.instance.Mixer.SetFloat("MusicVolume", Mathf.Log10(value) * 20);
-        SoundManagaer.instance.MusicVolume = value;
-    }
-    private void SetMasterLevel(float value)
-    {
-        if (!_soundEffectPlaying)
-            StartCoroutine(PlayJumpSound());
-        SoundManagaer.instance.Mixer.SetFloat("MasterVolume", Mathf.Log10(value) * 20);
-        SoundManagaer.instance.MasterVolume = value;
-    }
-    private void SetSoundEffectsLevel(float value)
-    {
-        if (!_soundEffectPlaying)
-            StartCoroutine(PlayJumpSound());
-        SoundManagaer.instance.Mixer.SetFloat("SoundEffectsVolume", Mathf.Log10(value) * 20);
-        SoundManagaer.instance.SoundEffectsVolume = value;
-    }
+        private void Update()
+        {
+            CheckPausePanel();
+        }
+        //Checks if the pause panel is active and pauses the game.
+        private void CheckPausePanel()
+        {
+            if (!Input.GetKeyDown(KeyCode.Escape)) return;
 
-    IEnumerator PlayJumpSound()
-    {
-        _soundEffectPlaying = true;
-        SoundManagaer.instance.PlayJump();
-        yield return new WaitForSecondsRealtime(0.5f);
-        _soundEffectPlaying = false;
-    }
+            if (pausePanel.activeInHierarchy)
+            {
+                pausePanel.SetActive(false);
+                Time.timeScale = 1;
+            }
+            else
+            {
+                pausePanel.SetActive(true);
+                Time.timeScale = 0;
+            }
+        }
+        
+        private void SetMusicLevel(float value)
+        {
+            SoundManagaer.Instance.Mixer.SetFloat("MusicVolume", Mathf.Log10(value) * 20);
+            SoundManagaer.Instance.MusicVolume = value;
+        }
+        
+        private void SetMasterLevel(float value)
+        {  
+            //Plays a jump sound effect to check the volume of the sfx
+            if (!_soundEffectPlaying)
+                StartCoroutine(PlayJumpSound());
+            SoundManagaer.Instance.Mixer.SetFloat("MasterVolume", Mathf.Log10(value) * 20);
+            SoundManagaer.Instance.MasterVolume = value;
+        }
 
-    public void QuitGame()
-    {
-        Application.Quit();
+        private void SetSoundEffectsLevel(float value)
+        {
+            //Plays a jump sound effect to check the volume of the sfx
+            if (!_soundEffectPlaying)
+                StartCoroutine(PlayJumpSound());
+            SoundManagaer.Instance.Mixer.SetFloat("SoundEffectsVolume", Mathf.Log10(value) * 20);
+            SoundManagaer.Instance.SoundEffectsVolume = value;
+        }
+        //Plays a jump sound effect to check the volume of the sfx and wait some time
+        //after being able to display another.
+        IEnumerator PlayJumpSound()
+        {
+            _soundEffectPlaying = true;
+            SoundManagaer.Instance.PlayJump();
+            yield return new WaitForSecondsRealtime(0.5f);
+            _soundEffectPlaying = false;
+        }
+
+        public void QuitGame()
+        {
+            Application.Quit();
+        }
     }
 }

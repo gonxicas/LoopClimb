@@ -1,52 +1,40 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using LoopClimb.Player;
 using UnityEngine;
 
-public class CameraController : MonoBehaviour
+namespace LoopClimb.CameraController
 {
-    private Camera _camera;
-    private Transform _player;
-    private float _upTransitionDistance;
-    private float _downTransitionDistance;
-    private const float Size = 7.04f;
-
-    private void Awake()
+    public class CameraController : MonoBehaviour
     {
-        _camera = Camera.main;
-        _player = FindObjectOfType<PlayerController>().gameObject.transform;
-    }
+        private Camera _camera;
+        private Transform _player;
+        private float _size;
 
-    private void Start()
-    {
-        _upTransitionDistance = _camera.transform.position.y + Size;
-        _downTransitionDistance = _camera.transform.position.y - Size;
-    }
-
-    private void LateUpdate()
-    {
-        CheckPlayerPosition();
-    }
-
-    private void CheckPlayerPosition()
-    {
-        if (_player.position.y >= _upTransitionDistance)
+        private void Awake()
         {
-            transform.Translate(Vector3.up * (2 * Size));
-            UpdateTransitionDistance(true);
+            _camera = Camera.main;
+            _player = FindObjectOfType<PlayerController>().gameObject.transform;
         }
 
-        if (_player.position.y <= _downTransitionDistance)
+        private void Start()
         {
-            transform.Translate(Vector3.up * (-2 * Size));
-            UpdateTransitionDistance(false);
+            _size = _camera.orthographicSize;
         }
-    }
 
-    private void UpdateTransitionDistance(bool value)
-    {
-        var number = value ? 1 : -1;
-        _upTransitionDistance += number * 2 * Size;
-        _downTransitionDistance += number * 2 * Size;
+        private void LateUpdate()
+        {
+            CheckPlayerPosition();
+        }
+
+        //Checks the player's position and move the camera if required.
+        private void CheckPlayerPosition()
+        {
+            var cameraPosition = _camera.transform.position.y;
+            var playerPosition = _player.position.y;
+
+            var dir = playerPosition >= cameraPosition + _size ? 1 :
+                        (playerPosition <= cameraPosition - _size ? -1 : 0);
+            if (dir != 0)
+                transform.Translate(Vector3.up * (dir * 2 * _size));
+        }
     }
 }
